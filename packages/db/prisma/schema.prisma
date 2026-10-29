@@ -218,7 +218,7 @@ model ChangeLog {
   entityType    String // "course" | "department" | "subject" | "catalog-year"
   entityId      String // persistent id (Course.id, …)
   catalogYearId Int?
-  action        String // "create" | "update" | "complete-year"
+  action        String // "create" | "update" | "remove" | "complete-year"
   origin        RecordOrigin
   actor         String? // person or source id
   sourceRunId   String?
