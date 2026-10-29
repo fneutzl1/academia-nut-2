@@ -1,0 +1,29 @@
+{
+  "name": "@academia-nut/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Public read-only API serving pulled datasets",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@academia-nut/core": "workspace:*",
+    "@academia-nut/shared": "workspace:*",
+    "compression": "^1.8.2",
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.1"
+  }
+}

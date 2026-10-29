@@ -1,0 +1,23 @@
+{
+  "name": "@academia-nut/admin-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vue 3 admin UI for running data pulls and testing the public API",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@academia-nut/shared": "workspace:*",
+    "vue": "^3.5.44",
+    "vue-router": "^5.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.10",
+    "vite": "^8.3.5",
+    "vue-tsc": "^3.3.13"
+  }
+}

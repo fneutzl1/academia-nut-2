@@ -1,0 +1,21 @@
+node_modules
+dist
+*.log
+.DS_Store
+
+# env
+.env
+.env.*
+!.env.example
+
+# local dataset store (Heroku uses Postgres later — see docs/heroku.md)
+data/*
+!data/.gitkeep
+
+# AI session work files (see .claude/skills/start-work)
+.work/
+
+# editors
+.idea
+.vscode/*
+!.vscode/extensions.json

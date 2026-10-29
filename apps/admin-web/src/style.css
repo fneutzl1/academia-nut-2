@@ -1,0 +1,75 @@
+:root {
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --text: #1c1c1e;
+  --muted: #6b6b70;
+  --border: #dcdce0;
+  --accent: #2f5fd0;
+  --ok: #1d7a3e;
+  --bad: #b42318;
+  --warn: #9a6700;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161618;
+    --surface: #1f1f22;
+    --text: #ececef;
+    --muted: #9d9da3;
+    --border: #36363b;
+    --accent: #7aa2ff;
+    --ok: #5cc985;
+    --bad: #ff7b72;
+    --warn: #e3b341;
+  }
+}
+
+body { margin: 0; background: var(--bg); }
+main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 1.4rem; margin: 0.5rem 0; }
+small { color: var(--muted); }
+
+.topbar {
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+  padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.topbar nav { display: flex; gap: 12px; flex: 1; }
+.topbar a { color: var(--muted); text-decoration: none; }
+.topbar a.router-link-exact-active { color: var(--accent); font-weight: 600; }
+.token { display: flex; gap: 6px; }
+
+.row { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.grow { flex: 1; }
+
+input, button {
+  font: inherit; padding: 6px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+button { cursor: pointer; }
+button:disabled { opacity: 0.5; cursor: default; }
+button.link { border: none; background: none; color: var(--accent); padding: 2px 4px; }
+.presets { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+
+table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.tag { font-size: 0.75rem; color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+.state { font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+.state.succeeded { color: var(--ok); }
+.state.failed { color: var(--bad); }
+.state.running, .state.queued { color: var(--warn); }
+.error { color: var(--bad); }
+
+pre {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 12px; overflow: auto; max-height: 65vh; font-size: 0.8rem;
+}
+
+@media (max-width: 700px) {
+  table, thead, tbody, tr, th, td { display: block; }
+  thead { display: none; }
+  td { border-bottom: none; }
+  tr { border-bottom: 1px solid var(--border); }
+}

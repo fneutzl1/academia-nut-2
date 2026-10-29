@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm 10 blocks dependency install scripts unless allow-listed
+onlyBuiltDependencies:
+  - esbuild
+
+# TypeScript 7 (native) has no JS API yet; vue-tsc needs 6.x
+overrides:
+  typescript: ^6.0.3
