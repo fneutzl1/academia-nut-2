@@ -44,7 +44,7 @@ small { color: var(--muted); }
 .row { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
 .grow { flex: 1; }
 
-input, button {
+input, button, select {
   font: inherit; padding: 6px 10px; border-radius: 6px;
   border: 1px solid var(--border); background: var(--surface); color: var(--text);
 }

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@academia-nut/core": "workspace:*",
+    "@academia-nut/db": "workspace:*",
     "@academia-nut/shared": "workspace:*",
     "compression": "^1.8.2",
     "cors": "^2.8.6",

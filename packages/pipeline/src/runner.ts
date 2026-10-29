@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { DatasetStore } from '@academia-nut/core';
 import type { RunStatus } from '@academia-nut/shared';
-import type { Source, SourceContext } from './source.js';
+import type { CatalogWriter, Source, SourceContext } from './source.js';
 
 const MAX_WARNINGS = 200;
 const MAX_INVALID_EXAMPLES = 5;
@@ -14,6 +14,7 @@ export async function runSource<Raw, Row>(
   source: Source<Raw, Row>,
   store: DatasetStore,
   onProgress: (status: RunStatus) => void = () => {},
+  options: { catalog?: CatalogWriter } = {},
 ): Promise<RunStatus> {
   const status: RunStatus = {
     id: randomUUID(),
@@ -81,7 +82,18 @@ export async function runSource<Raw, Row>(
 
     const meta = await store.write(source.dataset, rows, source.id);
     status.written = meta.rowCount;
-    return finish('succeeded', `Wrote ${meta.rowCount} rows to ${source.dataset}`);
+    const wrote = `Wrote ${meta.rowCount} rows to ${source.dataset}`;
+
+    if (source.catalog && options.catalog) {
+      try {
+        const result = await options.catalog(source.catalog, rows, { sourceId: source.id, runId: status.id });
+        result.warnings.forEach((w) => ctx.warn(w));
+        return finish('succeeded', `${wrote}; ${result.summary}`);
+      } catch (err) {
+        return finish('failed', `${wrote}, but the catalog write failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+    return finish('succeeded', wrote);
   } catch (err) {
     return finish('failed', err instanceof Error ? err.message : String(err));
   }

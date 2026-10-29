@@ -9,18 +9,19 @@ Data pulling and serving for Columbus State's Explore catalog.
 | `apps/admin-web` | Vue 3 admin UI: run pulls, explore the API |
 | `packages/shared` | Shared types + zod schemas (browser-safe) |
 | `packages/core` | Env + dataset storage (Node) |
+| `packages/db` | Prisma / Postgres catalog-year tables (Node) |
 | `packages/pipeline` | Source/connector/runner pipeline for all data pulls |
 
 ## Getting started
 
 ```sh
-corepack enable          # provides pnpm 10 from package.json
+corepack enable          # provides pnpm 12 from package.json
 pnpm install
 cp .env.example .env     # fill in ADMIN_TOKEN and vendor credentials
 pnpm dev                 # api :4000 · admin :4001 · UI http://localhost:5173
 ```
 
-Requires Node 22.12 or newer (see `.nvmrc`).
+Requires Node 22.12 or newer; dev uses 26 (see `.nvmrc`).
 
 Open the UI, paste your `ADMIN_TOKEN` into the token box, and run a pull from **Sources**.
 Use **API Explorer** to hit the public API.

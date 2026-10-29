@@ -10,6 +10,7 @@ const draft = ref(token.value);
     <strong>Academia Nut Admin</strong>
     <nav>
       <RouterLink to="/">Sources</RouterLink>
+      <RouterLink to="/catalog">Catalog</RouterLink>
       <RouterLink to="/api-explorer">API Explorer</RouterLink>
     </nav>
     <form class="token" @submit.prevent="saveToken(draft)">

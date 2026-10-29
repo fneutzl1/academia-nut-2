@@ -64,4 +64,34 @@ describe('runSource', () => {
     const status = await runSource(source, memoryStore());
     expect(status).toMatchObject({ state: 'failed', message: 'HTTP 500' });
   });
+  it('also writes catalog-year rows when the source has a catalog table and a writer is given', async () => {
+    const store = memoryStore();
+    const calls: unknown[] = [];
+    const source = { ...numbers([1, 2]), catalog: 'courses' as const };
+    const status = await runSource(source, store, () => {}, {
+      catalog: async (table, rows, run) => {
+        calls.push({ table, rows, sourceId: run.sourceId });
+        return { summary: '2026-2027 courses: 2 new', warnings: ['heads up'] };
+      },
+    });
+
+    expect(status.state).toBe('succeeded');
+    expect(calls).toEqual([{ table: 'courses', rows: [{ n: 1 }, { n: 2 }], sourceId: 'numbers' }]);
+    expect(status.message).toMatch(/2026-2027 courses: 2 new/);
+    expect(status.warnings).toContain('heads up');
+  });
+
+  it('fails the run (JSON already written) when the catalog write throws', async () => {
+    const store = memoryStore();
+    const source = { ...numbers([1]), catalog: 'courses' as const };
+    const status = await runSource(source, store, () => {}, {
+      catalog: async () => {
+        throw new Error('Catalog year 2025-2026 is complete');
+      },
+    });
+
+    expect(status.state).toBe('failed');
+    expect(status.message).toMatch(/catalog write failed: Catalog year 2025-2026 is complete/);
+    expect(store.data.numbers).toEqual([{ n: 1 }]);
+  });
 });

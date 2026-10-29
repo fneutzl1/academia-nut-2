@@ -2,6 +2,7 @@
 //   pnpm --filter @academia-nut/admin pull curricunet-courses     (built)
 //   pnpm --filter @academia-nut/admin pull:dev curricunet-courses (local, tsx)
 import { defaultDataDir, FileStore, loadRootEnv } from '@academia-nut/core';
+import { catalogWriter, createDb } from '@academia-nut/db';
 import { getSource, runSource, sources } from '@academia-nut/pipeline';
 
 loadRootEnv();
@@ -14,11 +15,14 @@ if (ids.length === 0) {
 
 const selected = ids.includes('all') ? sources : ids.map((id) => getSource(id) ?? (console.error(`Unknown source ${id}`), process.exit(1)));
 const store = new FileStore(defaultDataDir());
+const db = process.env.DATABASE_URL ? createDb() : undefined;
+const catalog = db ? catalogWriter(db) : undefined;
 
 let failed = false;
 for (const source of selected) {
-  const status = await runSource(source, store, (s) => console.log(`[${source.id}] ${s.message}`));
+  const status = await runSource(source, store, (s) => console.log(`[${source.id}] ${s.message}`), { catalog });
   for (const warning of status.warnings) console.warn(`[${source.id}] warn: ${warning}`);
   failed ||= status.state === 'failed';
 }
+await db?.$disconnect();
 process.exit(failed ? 1 : 0);

@@ -1,5 +1,18 @@
 import type { z } from 'zod';
 
+export type CatalogTable = 'courses' | 'departments';
+
+/**
+ * Writes a successful run's rows into the year-versioned Postgres tables
+ * (implemented by @academia-nut/db, injected so the pipeline stays storage-agnostic).
+ * Returns a one-line summary for the run status.
+ */
+export type CatalogWriter = (
+  table: CatalogTable,
+  rows: unknown[],
+  run: { sourceId: string; runId: string },
+) => Promise<{ summary: string; warnings: string[] }>;
+
 export interface SourceContext {
   /** Record a non-fatal problem; surfaced in the run status. */
   warn(message: string): void;
@@ -23,6 +36,8 @@ export interface Source<Raw = unknown, Row = unknown> {
   transform(raw: Raw, ctx: SourceContext): Row | null;
   finalize?(rows: Row[], ctx: SourceContext): Row[];
   schema: z.ZodType<Row>;
+  /** Also write rows into this catalog-year table (open year) when a catalog writer is configured. */
+  catalog?: CatalogTable;
   guard?: {
     /** Fail if the row count changes by more than this fraction vs the last run. */
     maxCountChange?: number;

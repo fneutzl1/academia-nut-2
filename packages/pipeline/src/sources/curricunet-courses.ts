@@ -167,5 +167,6 @@ export const curricunetCourses = defineSource<CurricunetEntity, Course>({
   transform: (entity, ctx) => transformCourse(entity, ctx.warn),
   finalize: linkRequisiteSlugs,
   schema: CourseSchema,
+  catalog: 'courses',
   guard: { maxCountChange: 0.15, minRows: 100 },
 });

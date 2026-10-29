@@ -2,7 +2,8 @@ import { timingSafeEqual } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { DatasetStore } from '@academia-nut/core';
-import { getSource, sources } from '@academia-nut/pipeline';
+import { listCourseChanges, type PrismaClient } from '@academia-nut/db';
+import { getSource, sources, type CatalogWriter } from '@academia-nut/pipeline';
 import type { SourceInfo } from '@academia-nut/shared';
 import express, { type RequestHandler } from 'express';
 import helmet from 'helmet';
@@ -10,6 +11,9 @@ import { RunRegistry } from './runs.js';
 
 export interface AdminOptions {
   store: DatasetStore;
+  catalog?: CatalogWriter;
+  /** Catalog-year tables (change history). Optional until Postgres is required. */
+  db?: PrismaClient;
   adminToken: string;
   publicApiUrl: string;
   webDist?: string;
@@ -25,8 +29,8 @@ function requireToken(token: string): RequestHandler {
   };
 }
 
-export function createApp({ store, adminToken, publicApiUrl, webDist }: AdminOptions) {
-  const runs = new RunRegistry(store);
+export function createApp({ store, catalog, db, adminToken, publicApiUrl, webDist }: AdminOptions) {
+  const runs = new RunRegistry(store, catalog);
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -83,6 +87,15 @@ export function createApp({ store, adminToken, publicApiUrl, webDist }: AdminOpt
 
   api.get('/datasets', async (_req, res) => {
     res.json(await store.list());
+  });
+
+  // Change history for the Catalog browser. The data itself is read from the public API.
+  api.get('/catalog/courses/:id/changes', async (req, res) => {
+    if (!db) {
+      res.status(503).json({ error: 'Catalog database not configured (set DATABASE_URL)' });
+      return;
+    }
+    res.json(await listCourseChanges(db, req.params.id));
   });
 
   app.use('/admin-api', api);

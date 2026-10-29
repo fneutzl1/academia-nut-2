@@ -19,3 +19,6 @@ data/*
 .idea
 .vscode/*
 !.vscode/extensions.json
+
+# generated Prisma client
+packages/db/src/generated/

@@ -25,9 +25,9 @@
 - The legacy repo's `CurricunetService.js` currently points at the vendor **dev** host (`mwsdev.…`); here it's `CURRIC_HOST`.
 
 ## Follow-ups
-- [ ] Upgrade local Node to latest 22.x (or 24 LTS) and drop the `--experimental-require-module` workaround.
+- [x] Upgrade local Node (now 26, see [prisma-catalog-years](2026-10-28-prisma-catalog-years.md)).
 - [ ] Do a real Curricunet pull against the dev host and compare output to legacy `courses.json` (diff tool).
-- [ ] `PgDatasetStore` + Heroku Postgres; persist run history.
+- [ ] `PgDatasetStore` + persist run history (Postgres + Prisma now exist: [prisma-catalog-years](2026-10-28-prisma-catalog-years.md)).
 - [ ] Port the programs pull (depends on courses) and Airtable side-loads (programs extra, transfers, schools).
 - [ ] Real admin auth.
 - [ ] Create Heroku pipeline(s) per [docs/heroku.md](../../heroku.md).
