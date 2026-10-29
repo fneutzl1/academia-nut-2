@@ -2,3 +2,4 @@
 export * from './datasets/course.js';
 export * from './datasets/department.js';
 export * from './runs.js';
+export * from './catalog.js';

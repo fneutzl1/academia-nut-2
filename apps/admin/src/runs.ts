@@ -1,5 +1,5 @@
 import type { DatasetStore } from '@academia-nut/core';
-import { runSource, type Source } from '@academia-nut/pipeline';
+import { runSource, type CatalogWriter, type Source } from '@academia-nut/pipeline';
 import type { RunStatus } from '@academia-nut/shared';
 
 const HISTORY_LIMIT = 50;
@@ -11,7 +11,10 @@ const HISTORY_LIMIT = 50;
 export class RunRegistry {
   private runs: RunStatus[] = [];
 
-  constructor(private readonly store: DatasetStore) {}
+  constructor(
+    private readonly store: DatasetStore,
+    private readonly catalog?: CatalogWriter,
+  ) {}
 
   list(): RunStatus[] {
     return this.runs;
@@ -40,7 +43,7 @@ export class RunRegistry {
           resolve(status);
         }
         if (status.state === 'failed') console.error(`[${source.id}] ${status.message}`);
-      });
+      }, { catalog: this.catalog });
     });
   }
 }

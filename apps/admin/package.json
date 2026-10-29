@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@academia-nut/core": "workspace:*",
+    "@academia-nut/db": "workspace:*",
     "@academia-nut/pipeline": "workspace:*",
     "@academia-nut/shared": "workspace:*",
     "express": "^5.3.0",

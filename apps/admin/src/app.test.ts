@@ -33,6 +33,11 @@ describe('admin', () => {
     expect(res.body.map((s: { id: string }) => s.id)).toContain('curricunet-courses');
   });
 
+  it('reports change history as unavailable without a database', async () => {
+    const res = await request(app).get('/admin-api/catalog/courses/x/changes').set(auth).expect(503);
+    expect(res.body.error).toMatch(/DATABASE_URL/);
+  });
+
   it('404s unknown sources', async () => {
     await request(app).post('/admin-api/sources/nope/runs').set(auth).expect(404);
   });

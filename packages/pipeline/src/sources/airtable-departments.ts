@@ -33,5 +33,6 @@ export const airtableDepartments = defineSource<AirtableRecord<DepartmentFields>
     };
   },
   schema: DepartmentSchema,
+  catalog: 'departments',
   guard: { maxCountChange: 0.25 },
 });

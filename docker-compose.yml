@@ -1,0 +1,20 @@
+# Local Postgres for development. Heroku uses the Heroku Postgres add-on instead.
+#   docker compose up -d
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: academia
+      POSTGRES_PASSWORD: academia
+      POSTGRES_DB: academia_nut
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U academia -d academia_nut']
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgdata:

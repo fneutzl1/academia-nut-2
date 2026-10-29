@@ -7,4 +7,5 @@ export const config = {
   port: Number(process.env.PORT ?? process.env.API_PORT ?? 4000),
   corsOrigins: (process.env.CORS_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean),
   dataDir: defaultDataDir(),
+  databaseUrl: process.env.DATABASE_URL,
 };

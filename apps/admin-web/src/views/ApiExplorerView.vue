@@ -2,7 +2,17 @@
 import { computed, onMounted, ref } from 'vue';
 import { adminApi } from '../api';
 
-const PRESETS = ['/health', '/api/datasets', '/api/datasets/courses', '/api/courses/ASC-1190', '/api/datasets/departments'];
+const PRESETS = [
+  '/health',
+  '/api/datasets',
+  '/api/datasets/courses',
+  '/api/courses/ASC-1190',
+  '/api/datasets/departments',
+  '/api/catalog/years',
+  '/api/catalog/years/2025-2026/courses',
+  '/api/catalog/years/2025-2026/courses/ASC-1190',
+  '/api/catalog/years/2026-2027/departments',
+];
 const PREVIEW_CHARS = 200_000;
 
 const baseUrl = ref('');

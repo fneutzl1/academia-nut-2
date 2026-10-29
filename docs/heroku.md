@@ -35,7 +35,7 @@ One repo → four Heroku apps in two pipelines:
 | `PUBLIC_API_URL` | | ✓ | e.g. `https://an-api-test.herokuapp.com` |
 | `CURRIC_USER` / `CURRIC_PASS` / `CURRIC_HOST` | | ✓ | test → vendor dev host, prod → `mws.services.curriqunet.com` |
 | `AIRTABLE_TOKEN` | | ✓ | |
-| `DATABASE_URL` | ✓ | ✓ | once the Postgres store exists (same DB attached to both apps in an env) |
+| `DATABASE_URL` | ✓ | ✓ | Heroku Postgres (same DB attached to both apps in an env). Admin pulls also write catalog-year tables when set |
 
 ## Storage (must happen before the first real deploy)
 
@@ -51,6 +51,15 @@ Next step: a `PgDatasetStore` implementing `DatasetStore` in `packages/core`:
   (`heroku addons:attach <db> -a an-api-test`).
 - The api keeps an in-memory cache keyed by `updated_at` so reads stay fast.
 
+## Catalog-year tables (Prisma)
+
+- Schema and migrations: `packages/db/prisma/`. `Procfile` `release: pnpm release` runs `prisma migrate deploy`
+  on every deploy when `DATABASE_URL` is set (both apps share the Procfile; a second deploy is a no-op).
+- `prisma` is a runtime dependency (not dev) so the CLI survives Heroku's dev-dependency prune.
+- After the add-on is attached, run the backfill once from a one-off dyno, or load a local `pg_dump`.
+- A new catalog year is created as OPEN; pulls write to the newest OPEN year. Completing a year (freezing it) is
+  `completeCatalogYear()` (admin UI for it is still to do).
+
 ## Scheduled pulls
 
 - Heroku Scheduler on the admin app: `pnpm --filter @academia-nut/admin pull all` (non-zero exit on failure).
@@ -60,7 +69,8 @@ Next step: a `PgDatasetStore` implementing `DatasetStore` in `packages/core`:
 
 ## Before go-live checklist
 
-- [ ] Postgres store + migration
+- [x] Prisma + catalog-year tables (courses, departments, subjects), release-phase migrations
+- [ ] Postgres `DatasetStore` for the remaining JSON datasets
 - [ ] Real admin auth (replace `ADMIN_TOKEN`)
 - [ ] CI: `pnpm typecheck && pnpm test` on PRs (GitHub Actions), gate auto-deploy on it
 - [ ] Failure alerting for pulls (email/Slack on `failed` runs)

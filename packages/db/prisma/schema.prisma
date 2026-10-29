@@ -1,0 +1,233 @@
+// Catalog data keyed to catalog years.
+//
+// Pattern (courses now, departments/subjects now, programs next):
+//   <Entity>            persistent identity only. Never re-keyed or deleted, so the
+//                       internal id survives vendor code changes.
+//   <Entity>Identifier  external keys (course code, vendor ids) → identity. Several per
+//                       entity, so a renumbered course still resolves to the same row.
+//   <Entity>Version     one row per entity per catalog year: the data as it was that year.
+//                       Rows in a COMPLETE year are frozen; only the OPEN year is written.
+//
+// Provenance columns (origin, sourceId, sourceRunId, updatedBy) and ChangeLog exist so that
+// manual edits can be added later without reshaping tables (this tool may become a system of record).
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CatalogYearStatus {
+  OPEN
+  COMPLETE
+}
+
+/// Where a version row's current content came from.
+enum RecordOrigin {
+  IMPORT // backfilled from legacy JSON snapshots
+  PULL // written by a pipeline source run
+  MANUAL // edited in admin (future)
+}
+
+/// A catalog year such as "2025-2026". A person flips it to COMPLETE in admin.
+model CatalogYear {
+  id          Int               @id @default(autoincrement())
+  code        String            @unique // "2025-2026"
+  startYear   Int               @unique // 2025, for ordering
+  status      CatalogYearStatus @default(OPEN)
+  completedAt DateTime?
+  completedBy String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  courseVersions     CourseVersion[]
+  departmentVersions DepartmentVersion[]
+  subjectVersions    SubjectVersion[]
+  changes            ChangeLog[]
+}
+
+// ---------------------------------------------------------------- courses
+
+model Course {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  identifiers CourseIdentifier[]
+  versions    CourseVersion[]
+}
+
+/// system: "course-code" (e.g. ASC-1190), "curricunet-entity" (vendor entityId), …
+model CourseIdentifier {
+  id        Int      @id @default(autoincrement())
+  courseId  String
+  system    String
+  value     String
+  createdAt DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@unique([system, value])
+  @@index([courseId])
+}
+
+/// One course as it exists in one catalog year. Mirrors the legacy courses.json row;
+/// noDash/code/type are derived from courseCode on the way out.
+model CourseVersion {
+  id            String @id @default(uuid())
+  courseId      String
+  catalogYearId Int
+
+  courseCode  String // "ASC-1190" (legacy courseID)
+  subject     String // "ASC" (legacy type)
+  number      String // "1190" (legacy code)
+  name        String
+  description String
+  status      String
+  creditsMin  Float
+  creditsMax  Float? // null = legacy "" (fixed credits)
+
+  offeredAutumn Boolean
+  offeredSpring Boolean
+  offeredSummer Boolean
+  offeredOnDemand Boolean
+
+  deptFee  Float? // null = legacy ""
+  techFee  Float?
+  totalFee Float?
+
+  beginDate String // kept as the vendor's ISO string
+
+  requisites   Json // { pre: Requisite[], co: Requisite[] }
+  restrictions Json // Restriction[]
+  contactHours Json // ContactHours[]
+  /// Database NULL = key absent (pre-2025 snapshots); JSON null = no syllabus.
+  syllabus     Json?
+
+  /// sha256 of the legacy-shaped row; unchanged hash = no write, no ChangeLog entry.
+  contentHash String
+  origin      RecordOrigin
+  sourceId    String? // pipeline source id, e.g. "curricunet-courses"
+  sourceRunId String?
+  pulledAt    DateTime?
+  updatedBy   String? // person, for MANUAL edits
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  course      Course      @relation(fields: [courseId], references: [id])
+  catalogYear CatalogYear @relation(fields: [catalogYearId], references: [id])
+
+  @@unique([courseId, catalogYearId])
+  @@unique([catalogYearId, courseCode])
+  @@index([catalogYearId, subject])
+}
+
+// ------------------------------------------------------------ departments
+
+model Department {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  identifiers DepartmentIdentifier[]
+  versions    DepartmentVersion[]
+}
+
+/// system: "airtable" (record id, stable across years), …
+model DepartmentIdentifier {
+  id           Int      @id @default(autoincrement())
+  departmentId String
+  system       String
+  value        String
+  createdAt    DateTime @default(now())
+
+  department Department @relation(fields: [departmentId], references: [id])
+
+  @@unique([system, value])
+  @@index([departmentId])
+}
+
+model DepartmentVersion {
+  id            String @id @default(uuid())
+  departmentId  String
+  catalogYearId Int
+
+  name           String
+  code           String?
+  link           String?
+  subDepartments String[] // Airtable record ids
+  programIds     String[] // Airtable record ids; become relations when programs move in
+
+  contentHash String
+  origin      RecordOrigin
+  sourceId    String?
+  sourceRunId String?
+  pulledAt    DateTime?
+  updatedBy   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  department  Department  @relation(fields: [departmentId], references: [id])
+  catalogYear CatalogYear @relation(fields: [catalogYearId], references: [id])
+
+  @@unique([departmentId, catalogYearId])
+}
+
+// --------------------------------------------------------------- subjects
+
+/// A course subject code (ACCT, ENGL). Its code is its identity; courses join on CourseVersion.subject.
+model Subject {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  createdAt DateTime @default(now())
+
+  versions SubjectVersion[]
+}
+
+model SubjectVersion {
+  id            String @id @default(uuid())
+  subjectId     String
+  catalogYearId Int
+
+  name String
+
+  contentHash String
+  origin      RecordOrigin
+  sourceId    String?
+  sourceRunId String?
+  pulledAt    DateTime?
+  updatedBy   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  subject     Subject     @relation(fields: [subjectId], references: [id])
+  catalogYear CatalogYear @relation(fields: [catalogYearId], references: [id])
+
+  @@unique([subjectId, catalogYearId])
+}
+
+// ---------------------------------------------------------------- history
+
+/// Append-only history of every version write (pull, import, or future manual edit),
+/// so changes inside an open year are not lost when the next pull overwrites them.
+model ChangeLog {
+  id            BigInt       @id @default(autoincrement())
+  entityType    String // "course" | "department" | "subject" | "catalog-year"
+  entityId      String // persistent id (Course.id, …)
+  catalogYearId Int?
+  action        String // "create" | "update" | "remove" | "complete-year"
+  origin        RecordOrigin
+  actor         String? // person or source id
+  sourceRunId   String?
+  before        Json?
+  after         Json?
+  createdAt     DateTime     @default(now())
+
+  catalogYear CatalogYear? @relation(fields: [catalogYearId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([catalogYearId])
+}

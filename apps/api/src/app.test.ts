@@ -19,6 +19,10 @@ beforeAll(async () => {
 afterAll(() => fs.rm(dir, { recursive: true, force: true }));
 
 describe('api', () => {
+  it('503s catalog routes without a database', async () => {
+    await request(app).get('/api/catalog/years').expect(503);
+  });
+
   it('lists datasets', async () => {
     const res = await request(app).get('/api/datasets').expect(200);
     expect(res.body).toMatchObject([{ name: 'courses', rowCount: 1 }]);

@@ -10,5 +10,7 @@ export const config = {
   dataDir: defaultDataDir(),
   // Read at runtime (not baked into the UI build) so one slug can be promoted test -> prod
   publicApiUrl: process.env.PUBLIC_API_URL ?? '',
+  // Optional while JSON files are still the primary store: pulls also write catalog-year tables when set
+  databaseUrl: process.env.DATABASE_URL,
   webDist: path.join(findRepoRoot(), 'apps', 'admin-web', 'dist'),
 };
